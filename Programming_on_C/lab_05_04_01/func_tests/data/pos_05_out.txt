@@ -1,0 +1,9 @@
+Klimenkov
+Artem
+4 3 5 6
+Klimenkov
+Artem
+7 7 7 7
+Pozdishev
+Aleksander
+4 4 3 5

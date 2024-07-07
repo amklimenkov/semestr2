@@ -1,0 +1,64 @@
+        -:    0:Source:process.c
+        -:    1:#include <assert.h>
+        -:    2:#include "process.h"
+        -:    3:
+      126:    4:int get_number_by_pos(FILE *f_bin, long pos, int *number)
+        -:    5:{
+     126*:    6:    assert(f_bin != NULL);
+     126*:    7:    assert(number != NULL);
+        -:    8:
+      126:    9:    if (fseek(f_bin, pos * sizeof(*number), SEEK_SET) != 0)
+    #####:   10:        return ERR_IO;
+        -:   11:
+      126:   12:    if (fread(number, sizeof(*number), 1, f_bin) != 1)
+    #####:   13:        return ERR_IO;
+        -:   14:    
+      126:   15:    return ERR_OK;
+        -:   16:}
+        -:   17:
+      105:   18:int put_number_by_pos(FILE *f_bin, long pos, int number)
+        -:   19:{
+     105*:   20:    assert(f_bin != NULL);
+        -:   21:
+      105:   22:    if (fseek(f_bin, pos * sizeof(number), SEEK_SET) != 0)
+    #####:   23:        return ERR_IO;
+        -:   24:    
+      105:   25:    if (fwrite(&number, sizeof(number), 1, f_bin) != 1)
+    #####:   26:        return ERR_IO;
+        -:   27:    
+      105:   28:    return ERR_OK;
+        -:   29:}
+        -:   30:
+        7:   31:int sort_number_in_bin_file(FILE *f_bin)
+        -:   32:{
+        -:   33:    long size;
+        7:   34:    if (fseek(f_bin, 0, SEEK_END) != 0)
+    #####:   35:        return ERR_IO;
+        -:   36:    
+        7:   37:    size = ftell(f_bin);
+        7:   38:    if (size == -1)
+    #####:   39:        return ERR_IO;
+        -:   40:
+        7:   41:    size = size / sizeof(int);
+        7:   42:    if (fseek(f_bin, 0, SEEK_SET) != 0)
+    #####:   43:        return ERR_IO;
+        -:   44:
+        7:   45:    int j, rc = ERR_OK;
+       41:   46:    for (long i = 1; rc == ERR_OK && i < size; i++)
+        -:   47:    {
+        -:   48:        int el, prev_el;
+       34:   49:        rc = get_number_by_pos(f_bin, i, &el);
+       34:   50:        j = i - 1;
+       34:   51:        rc = get_number_by_pos(f_bin, j, &prev_el);
+      105:   52:        while (rc == ERR_OK && j >= 0 && prev_el > el)
+        -:   53:        {
+       71:   54:            rc = put_number_by_pos(f_bin, j + 1, prev_el);
+       71:   55:            j--;              
+       71:   56:            if (rc == ERR_OK && j >= 0) 
+       58:   57:                rc = get_number_by_pos(f_bin, j, &prev_el);
+        -:   58:        }
+       34:   59:        rc = put_number_by_pos(f_bin, j + 1, el);
+        -:   60:    }
+        -:   61:
+        7:   62:    return rc;
+        -:   63:}

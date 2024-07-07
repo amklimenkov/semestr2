@@ -1,0 +1,101 @@
+        -:    0:Source:io.c
+        -:    1:#include <assert.h>
+        -:    2:#include <stdlib.h>
+        -:    3:#include <time.h>
+        -:    4:#include "io.h"
+        -:    5:
+        9:    6:int text_to_bin(FILE *f_txt, FILE *f_bin)
+        -:    7:{
+       9*:    8:    assert(f_bin != NULL);
+       9*:    9:    assert(f_txt != NULL);
+        -:   10:
+        9:   11:    int el, rc = ERR_OK;
+        -:   12:
+        9:   13:    rewind(f_txt);
+       54:   14:    while (rc == ERR_OK && fscanf(f_txt, "%d", &el) == 1)
+        -:   15:    {
+       45:   16:        if (fwrite(&el, sizeof(el), 1, f_bin) != 1)
+    #####:   17:            rc = ERR_IO;
+        -:   18:    }
+        -:   19:
+        9:   20:    return rc;
+        -:   21:}
+        -:   22:
+        7:   23:int bin_to_text(FILE *f_bin, FILE *f_txt)
+        -:   24:{
+       7*:   25:    assert(f_bin != NULL);
+       7*:   26:    assert(f_txt != NULL);
+        -:   27:
+        7:   28:    int el, rc = ERR_OK;
+        7:   29:    if (fseek(f_bin, 0, SEEK_SET) != 0)
+    #####:   30:        return ERR_IO;
+        -:   31:    
+       48:   32:    while (rc == ERR_OK && (fread(&el, sizeof(el), 1, f_bin) == 1))
+        -:   33:    {
+       41:   34:        if (fprintf(f_txt, "%d ", el) < 0)
+    #####:   35:            rc = ERR_IO;
+        -:   36:    }
+        -:   37:
+        7:   38:    return rc;
+        -:   39:}
+        -:   40:
+    #####:   41:int write_rand_number_in_file(FILE *f_bin, size_t number)
+        -:   42:{
+    #####:   43:    int el, rc = ERR_OK;
+    #####:   44:    srand((unsigned)time(NULL));
+    #####:   45:    for (size_t i = 0; rc == ERR_OK && i < number; i++)
+        -:   46:    {
+    #####:   47:        el = rand();
+    #####:   48:        if (fwrite(&el, sizeof(el), 1, f_bin) != 1)
+    #####:   49:            rc = ERR_IO;
+        -:   50:    }
+        -:   51:
+    #####:   52:    return rc;
+        -:   53:}
+        -:   54:
+        2:   55:int print_bin_file(FILE *f_bin)
+        -:   56:{
+       2*:   57:    assert(f_bin != NULL);
+        -:   58:
+        2:   59:    int rc = ERR_OK, el;
+        -:   60:    long size;
+        2:   61:    if (fseek(f_bin, 0, SEEK_END) != 0)
+    #####:   62:        return ERR_IO;
+        -:   63:    
+        2:   64:    size = ftell(f_bin);
+        2:   65:    if (size == -1)
+    #####:   66:        return ERR_IO;
+        -:   67:    
+        2:   68:    if (fseek(f_bin, 0, SEEK_SET) != 0)
+    #####:   69:        return ERR_IO;
+        -:   70:
+        6:   71:    for (size_t i = 0; rc == ERR_OK && i < size / sizeof(int); i++)
+        -:   72:    {
+        4:   73:        if (fread(&el, sizeof(el), 1, f_bin) != 1)
+    #####:   74:            rc = ERR_IO;
+        -:   75:
+        4:   76:        if (rc == ERR_OK)
+        4:   77:            printf("%d ", el);
+        -:   78:    }
+        -:   79:
+        2:   80:    return rc;
+        -:   81:}
+        -:   82:
+       18:   83:int check_bin_file(FILE *f_bin)
+        -:   84:{
+        -:   85:    long size;
+       18:   86:    if (fseek(f_bin, 0, SEEK_END) != 0)
+    #####:   87:        return ERR_IO;
+        -:   88:    
+       18:   89:    size = ftell(f_bin);
+       18:   90:    if (size == -1)
+    #####:   91:        return ERR_IO;
+        -:   92:
+       18:   93:    if (size == 0)
+    #####:   94:        return ERR_NOT_ENOUGH_DATA;
+        -:   95:
+       18:   96:    if (size % sizeof(int) != 0)
+        2:   97:        return ERR_CORRUPT_FILE;
+        -:   98:    
+       16:   99:    return ERR_OK;
+        -:  100:}

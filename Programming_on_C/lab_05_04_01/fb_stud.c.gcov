@@ -1,0 +1,86 @@
+        -:    0:Source:fb_stud.c
+        -:    1:#include <assert.h>
+        -:    2:#include <string.h>
+        -:    3:#include "fb_stud.h"
+        -:    4:
+       28:    5:int get_stud_by_pos(FILE *f_bin, long pos, struct stud_t *stud)
+        -:    6:{
+      28*:    7:    assert(f_bin != NULL);
+      28*:    8:    assert(stud != NULL);
+        -:    9:
+       28:   10:    if (fseek(f_bin, pos * sizeof(*stud), SEEK_SET) != 0)
+    #####:   11:        return ERR_IO;
+        -:   12:
+       28:   13:    if (fread(stud, sizeof(*stud), 1, f_bin) != 1)
+    #####:   14:        return ERR_IO;
+        -:   15:    
+       28:   16:    return ERR_OK;
+        -:   17:}
+        -:   18:
+       21:   19:int put_stud_by_pos(FILE *f_bin, long pos, const struct stud_t *stud)
+        -:   20:{
+      21*:   21:    assert(f_bin != NULL);
+      21*:   22:    assert(stud != NULL);
+        -:   23:
+       21:   24:    if (fseek(f_bin, pos * sizeof(*stud), SEEK_SET) != 0)
+    #####:   25:        return ERR_IO;
+        -:   26:    
+       21:   27:    if (fwrite(stud, sizeof(*stud), 1, f_bin) != 1)
+    #####:   28:        return ERR_IO;
+        -:   29:    
+       21:   30:    return ERR_OK;
+        -:   31:}
+        -:   32:
+        8:   33:int sort_stud_in_bin_file(FILE *f_bin)
+        -:   34:{
+        -:   35:    long size;
+        8:   36:    if (fseek(f_bin, 0, SEEK_END) != 0)
+    #####:   37:        return ERR_IO;
+        -:   38:    
+        8:   39:    size = ftell(f_bin);
+        8:   40:    if (size == -1)
+    #####:   41:        return ERR_IO;
+        -:   42:
+        8:   43:    size = size / sizeof(struct stud_t);
+        8:   44:    if (fseek(f_bin, 0, SEEK_SET) != 0)
+    #####:   45:        return ERR_IO;
+        -:   46:
+        8:   47:    int j, rc = ERR_OK;
+       20:   48:    for (long i = 1; rc == ERR_OK && i < size; i++)
+        -:   49:    {
+        -:   50:        struct stud_t stud_curr, stud_prev;
+        -:   51:        char full_name_prev[SURNAME_LEN + LASTNAME_LEN - 1];
+        -:   52:        char full_name_curr[SURNAME_LEN + LASTNAME_LEN - 1];
+        -:   53:
+       12:   54:        rc = get_stud_by_pos(f_bin, i, &stud_curr);
+       12:   55:        j = i - 1;
+       12:   56:        rc = get_stud_by_pos(f_bin, j, &stud_prev);
+       12:   57:        if (rc == ERR_OK)
+        -:   58:        {
+       12:   59:            rc = get_full_name(full_name_curr, &stud_curr);
+       12:   60:            rc = get_full_name(full_name_prev, &stud_prev);
+        -:   61:        }
+        -:   62:
+       21:   63:        while (rc == ERR_OK && j >= 0 && (strcmp(full_name_prev, full_name_curr) > 0))
+        -:   64:        {
+        9:   65:            rc = put_stud_by_pos(f_bin, j + 1, &stud_prev);
+        9:   66:            j--;              
+        9:   67:            if (rc == ERR_OK && j >= 0)
+        -:   68:            {
+        4:   69:                rc = get_stud_by_pos(f_bin, j, &stud_prev);
+        4:   70:                rc = get_full_name(full_name_prev, &stud_prev);
+        -:   71:            }
+        -:   72:        }
+       12:   73:        rc = put_stud_by_pos(f_bin, j + 1, &stud_curr);
+        -:   74:    }
+        -:   75:
+        8:   76:    return rc;
+        -:   77:}
+        -:   78:
+       28:   79:int get_full_name(char *full_name, const struct stud_t *stud)
+        -:   80:{
+       28:   81:    int rc = ERR_OK;
+       28:   82:    strcpy(full_name, stud->surname);
+       28:   83:    strcat(full_name, stud->lastname);
+       28:   84:    return rc;
+        -:   85:}

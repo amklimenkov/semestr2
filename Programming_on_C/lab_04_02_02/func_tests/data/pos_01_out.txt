@@ -1,0 +1,6 @@
+Введите первую строку: Введите первую строку: Result: 
+hello yes
+i yes
+am no
+artem yes
+klimenkov yes

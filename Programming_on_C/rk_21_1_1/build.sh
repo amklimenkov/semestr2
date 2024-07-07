@@ -1,0 +1,1 @@
+gcc -Wall -Werror -Wpedantic -Wextra -o app.exe main.c

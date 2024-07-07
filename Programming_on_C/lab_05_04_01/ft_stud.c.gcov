@@ -1,0 +1,102 @@
+        -:    0:Source:ft_stud.c
+        -:    1:#include <inttypes.h>
+        -:    2:#include <string.h>
+        -:    3:#include <ctype.h>
+        -:    4:#include "ft_stud.h"
+        -:    5:#include "io.h"
+        -:    6:#include "errors.h"
+        -:    7:
+        8:    8:int print_stud_with_sub_in_surname(FILE *f_src, FILE *f_dst, const char *subs)
+        -:    9:{
+        8:   10:    int rc = ERR_OK;
+        -:   11:    struct stud_t stud;
+        -:   12:    struct stud_t students[N_STUDENTS];
+        8:   13:    memset(&stud, 0, sizeof(stud));
+        8:   14:    if (fseek(f_src, 0, SEEK_END) != 0)
+    #####:   15:        rc = ERR_IO;
+        8:   16:    long end = ftell(f_src);
+        8:   17:    if (fseek(f_src, 0, SEEK_SET) != 0)
+    #####:   18:        rc = ERR_IO;
+        -:   19:
+        8:   20:    size_t size = 0;
+       23:   21:    while (rc == ERR_OK && ftell(f_src) < end)
+        -:   22:    {
+       15:   23:        rc = get_next_stud(f_src, &(students[size]));
+       15:   24:        if (rc == ERR_OK)
+       11:   25:            size++;
+        -:   26:    }
+        -:   27:
+        -:   28:    
+       19:   29:    for (size_t i = 0, j = 0; rc == ERR_OK && i < size; i++)
+        -:   30:    {
+       11:   31:        char *sub_str = strstr(students[i].surname, subs);
+       11:   32:        if (sub_str == students[i].surname)
+        -:   33:        {
+        3:   34:            if (j == 0)
+        -:   35:            {
+        2:   36:                if (fprintf(f_dst, "%s\n%s\n%d %d %d %d", students[i].surname, students[i].lastname, students[i].grades[0], students[i].grades[1], students[i].grades[2], students[i].grades[3]) < 0)
+    #####:   37:                    rc = ERR_IO;
+        -:   38:            }
+        -:   39:            else
+        -:   40:            {
+        1:   41:                if (fprintf(f_dst, "\n%s\n%s\n%d %d %d %d", students[i].surname, students[i].lastname, students[i].grades[0], students[i].grades[1], students[i].grades[2], students[i].grades[3]) < 0)
+    #####:   42:                    rc = ERR_IO;
+        -:   43:            }
+        3:   44:            j++;
+        -:   45:        }
+        -:   46:    }
+        8:   47:    return rc;
+        -:   48:}
+        -:   49:
+       43:   50:int get_next_stud(FILE *f_txt, struct stud_t *stud)
+        -:   51:{
+       43:   52:    int rc = ERR_OK;
+        -:   53:    // Читаем фамилию
+        -:   54:    char buf_sur[SURNAME_LEN + 1];
+       43:   55:    buf_sur[0] = 0;
+       43:   56:    if (!fgets(buf_sur, SURNAME_LEN + 1, f_txt))
+        8:   57:        rc = ERR_IO;
+       43:   58:    char *enter = strrchr(buf_sur, '\n');
+       43:   59:    if (enter)
+       34:   60:        *enter = 0;
+        -:   61:
+       43:   62:    if (strlen(buf_sur) >= SURNAME_LEN)
+        1:   63:        rc = ERR_IO;
+        -:   64:    
+       43:   65:    if (rc == ERR_OK && strlen(buf_sur) > 0)
+        -:   66:    {
+       34:   67:        strncpy(stud->surname, buf_sur, SURNAME_LEN);
+       34:   68:        stud->surname[SURNAME_LEN - 1] = 0;
+        -:   69:    }
+        -:   70:    else
+        9:   71:        rc = ERR_IO;
+        -:   72:
+        -:   73:
+        -:   74:    // Читаем имя
+        -:   75:    char buf_last[LASTNAME_LEN + 1];
+       43:   76:    buf_last[0] = 0;
+       43:   77:    if (!fgets(buf_last, LASTNAME_LEN + 1, f_txt))
+        8:   78:        rc = ERR_IO;
+       43:   79:    enter = strrchr(buf_last, '\n');
+       43:   80:    if (enter)
+       33:   81:        *enter = 0;
+       43:   82:    if (strlen(buf_last) >= LASTNAME_LEN)
+        1:   83:        rc = ERR_IO;
+        -:   84:    
+       43:   85:    if (rc == ERR_OK && strlen(buf_last) > 0)
+        -:   86:    {
+       33:   87:        strncpy(stud->lastname, buf_last, LASTNAME_LEN);
+       33:   88:        stud->lastname[LASTNAME_LEN - 1] = 0;
+        -:   89:    }
+        -:   90:    else
+       10:   91:        rc = ERR_IO;
+        -:   92:    
+        -:   93:    // Читаем оценки
+       43:   94:    if (fscanf(f_txt, "%" SCNu32"%" SCNu32"%" SCNu32"%" SCNu32, &(stud->grades[0]), &(stud->grades[1]), &(stud->grades[2]), &(stud->grades[3])) != 4)
+       12:   95:        rc = ERR_IO;
+        -:   96:    // Удаляем оставшийся '\n'
+       43:   97:    if (rc == ERR_OK)
+       31:   98:        fscanf(f_txt, "%c", buf_last);
+        -:   99:    
+       43:  100:    return rc;
+        -:  101:}

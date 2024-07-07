@@ -1,0 +1,5 @@
+Введите первую строку: Введите первую строку: Result: 
+hello yes
+world no
+foot no
+gear no

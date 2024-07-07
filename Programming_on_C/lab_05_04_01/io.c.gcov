@@ -1,0 +1,92 @@
+        -:    0:Source:io.c
+        -:    1:#include <assert.h>
+        -:    2:#include <inttypes.h>
+        -:    3:
+        -:    4:#include "io.h"
+        -:    5:#include "stud.h"
+        -:    6:#include "ft_stud.h"
+        -:    7:
+        8:    8:int text_to_bin(FILE *f_txt, FILE *f_bin)
+        -:    9:{
+       8*:   10:    assert(f_bin != NULL);
+       8*:   11:    assert(f_txt != NULL);
+        -:   12:
+        8:   13:    int rc = ERR_OK;
+        -:   14:    struct stud_t students[N_STUDENTS];
+        8:   15:    size_t size = 0;
+        8:   16:    rewind(f_txt);
+       36:   17:    while (rc == ERR_OK && size < N_STUDENTS)
+        -:   18:    {
+       28:   19:        rc = get_next_stud(f_txt, &(students[size]));
+       28:   20:        if (rc == ERR_OK)
+       20:   21:            size++; 
+        -:   22:    }
+        8:   23:    rc = ERR_OK;
+       28:   24:    for (size_t i = 0; rc == ERR_OK && i < size; i++)
+        -:   25:    {
+       20:   26:        if (fwrite(&students[i], sizeof(students[i]), 1, f_bin) != 1)
+    #####:   27:            rc = ERR_IO;
+        -:   28:    }
+        8:   29:    return rc;
+        -:   30:}
+        -:   31:
+        8:   32:int bin_to_text(FILE *f_bin, FILE *f_txt)
+        -:   33:{
+       8*:   34:    assert(f_bin != NULL);
+       8*:   35:    assert(f_txt != NULL);
+        -:   36:
+        8:   37:    int rc = ERR_OK;
+        -:   38:    struct stud_t stud;
+        8:   39:    if (fseek(f_bin, 0, SEEK_END) != 0)
+    #####:   40:        return ERR_IO;
+        -:   41:    
+        8:   42:    long size = ftell(f_bin);
+        8:   43:    if (fseek(f_bin, 0, SEEK_SET) != 0)
+    #####:   44:        return ERR_IO;
+        -:   45:    
+       28:   46:    while (rc == ERR_OK && ftell(f_bin) <= size && (fread(&stud, sizeof(stud), 1, f_bin) == 1))
+        -:   47:    {
+       20:   48:        if (fprintf(f_txt, "%s\n%s\n%d %d %d %d\n", stud.surname, stud.lastname, stud.grades[0], stud.grades[1], stud.grades[2], stud.grades[3]) < 0)
+    #####:   49:            rc = ERR_IO;
+        -:   50:    }
+        -:   51:
+        8:   52:    return rc;
+        -:   53:}
+        -:   54:
+        -:   55:
+       22:   56:int check_bin_file(FILE *f_bin)
+        -:   57:{
+        -:   58:    long size;
+       22:   59:    if (fseek(f_bin, 0, SEEK_END) != 0)
+    #####:   60:        return ERR_IO;
+        -:   61:    
+       22:   62:    size = ftell(f_bin);
+       22:   63:    if (size == -1)
+    #####:   64:        return ERR_IO;
+        -:   65:
+       22:   66:    if (size == 0)
+        1:   67:        return ERR_NOT_ENOUGH_DATA;
+        -:   68:
+       21:   69:    if (size % sizeof(struct stud_t) != 0)
+        5:   70:        return ERR_CORRUPT_FILE;
+        -:   71:    
+       16:   72:    return ERR_OK;
+        -:   73:}
+        -:   74:
+        9:   75:int check_text_file(FILE *f_txt)
+        -:   76:{
+        -:   77:    long size;
+        9:   78:    if (fseek(f_txt, 0, SEEK_END) != 0)
+    #####:   79:        return ERR_IO;
+        -:   80:    
+        9:   81:    size = ftell(f_txt);
+        9:   82:    if (size == -1)
+    #####:   83:        return ERR_IO;
+        -:   84:
+        9:   85:    if (size == 0)
+        1:   86:        return ERR_NOT_ENOUGH_DATA;
+        -:   87:
+        -:   88:    
+        8:   89:    return ERR_OK;
+        -:   90:}
+        -:   91:

@@ -1,0 +1,110 @@
+        -:    0:Source:main.c
+        -:    1:#include <string.h>
+        -:    2:#include <stdlib.h>
+        -:    3:#include "ft_stud.h"
+        -:    4:#include "fb_stud.h"
+        -:    5:#include "io.h"
+        -:    6:#include "errors.h"
+        -:    7:
+       41:    8:int main(int argc, char **argv)
+        -:    9:{
+       41:   10:    if (argc != 3 && argc != 4 && argc != 5)
+        -:   11:    {
+        1:   12:        return ERR_PARAMS;
+        -:   13:    }
+       40:   14:    int rc = ERR_OK;
+       40:   15:    if (strcmp(argv[1], "import") == 0 && argc == 4)
+        8:   16:    {
+        8:   17:        FILE *f_txt = fopen(argv[2], "r");
+        8:   18:        FILE *f_bin = fopen(argv[3], "wb");
+        8:   19:        rc = ERR_OK;
+        8:   20:        if (f_txt == NULL || f_bin == NULL)
+    #####:   21:            rc = ERR_IO;
+        -:   22:
+        8:   23:        if (rc == ERR_OK)
+        8:   24:            rc = text_to_bin(f_txt, f_bin);
+        -:   25:
+        8:   26:        if (f_txt != NULL)
+        8:   27:            fclose(f_txt);
+        8:   28:        if (f_bin != NULL)
+        8:   29:            fclose(f_bin);
+        -:   30:    }
+       32:   31:    else if (strcmp(argv[1], "export") == 0 && argc == 4)
+        8:   32:    {
+        8:   33:        FILE *f_bin = fopen(argv[2], "rb");
+        8:   34:        FILE *f_txt = fopen(argv[3], "w");
+        -:   35:        
+        -:   36:        
+        8:   37:        if (f_txt == NULL || f_bin == NULL)
+    #####:   38:            rc = ERR_IO;
+        -:   39:
+        8:   40:        if (rc == ERR_OK)
+        8:   41:            rc = check_bin_file(f_bin);
+        -:   42:
+        8:   43:        if (rc == ERR_OK)
+        8:   44:            rc = bin_to_text(f_bin, f_txt);
+        -:   45:
+        8:   46:        if (f_txt != NULL)
+        8:   47:            fclose(f_txt);
+        8:   48:        if (f_bin != NULL)
+        8:   49:            fclose(f_bin);
+        -:   50:    }
+       24:   51:    else if (strcmp(argv[1], "sb") == 0 && argc == 3)
+       14:   52:    {
+       14:   53:        FILE *f_bin = fopen(argv[2], "r+b");
+        -:   54:        
+        -:   55:        
+       14:   56:        if (f_bin == NULL)
+    #####:   57:            rc = ERR_IO;
+        -:   58:
+       14:   59:        if (rc == ERR_OK)
+       14:   60:            rc = check_bin_file(f_bin);
+        -:   61:            
+       14:   62:        if (rc == ERR_OK)
+        8:   63:            rc = sort_stud_in_bin_file(f_bin);
+        -:   64:
+       14:   65:        if (f_bin != NULL)
+        -:   66:        {
+       14:   67:            fclose(f_bin);
+        -:   68:        }
+        -:   69:    }
+       10:   70:    else if (strcmp(argv[1], "ft") == 0 && argc == 5)
+        9:   71:    {
+        9:   72:        FILE *f_src = fopen(argv[2], "r");
+        9:   73:        FILE *f_dst = fopen(argv[3], "w");
+        -:   74:        char subs[SURNAME_LEN];
+        9:   75:        if (strlen(argv[4]) >= SURNAME_LEN)
+    #####:   76:            return ERR_PARAMS;
+        -:   77:        else
+        9:   78:            strcpy(subs, argv[4]);
+        -:   79:
+        9:   80:        if (f_src == NULL || f_dst == NULL)
+    #####:   81:            rc = ERR_IO;
+        -:   82:
+        9:   83:        if (rc == ERR_OK)
+        9:   84:            rc = check_text_file(f_src);
+        -:   85:        
+        9:   86:        if (rc == ERR_OK && strlen(argv[4]) != 0)
+        8:   87:            rc = print_stud_with_sub_in_surname(f_src, f_dst, subs);
+        -:   88:
+        9:   89:        if (rc == ERR_OK)
+        -:   90:        {
+        4:   91:            if (ftell(f_dst) == 0)
+        2:   92:                rc = ERR_EMPTY_FILE;
+        -:   93:        }
+        9:   94:        if (f_src != NULL)
+        -:   95:        {
+        9:   96:            fclose(f_src);
+        -:   97:        }
+        -:   98:        
+        9:   99:        if (f_dst != NULL)
+        -:  100:        {
+        9:  101:            fclose(f_dst);
+        -:  102:        }
+        -:  103:    }
+        -:  104:    else
+        -:  105:    {
+        1:  106:        rc = ERR_PARAMS;
+        -:  107:    }
+       40:  108:    return rc;
+        -:  109:}

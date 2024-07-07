@@ -1,0 +1,9 @@
+Pozdishev
+Aleksander
+4 4 3 5
+Malyi
+Nikita
+4 4 4 4
+Klimenkov
+Artem
+4 3 5 6

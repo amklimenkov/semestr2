@@ -1,0 +1,99 @@
+        -:    0:Source:main.c
+        -:    1:#include <string.h>
+        -:    2:#include <stdlib.h>
+        -:    3:#include "process.h"
+        -:    4:#include "io.h"
+        -:    5:#include "errors.h"
+        -:    6:
+       27:    7:int main(int argc, char **argv)
+        -:    8:{
+       27:    9:    if (argc != 3 && argc != 4)
+        -:   10:    {
+    #####:   11:        printf("Start command: \"./app.exe <key> <file_name> [<file_name_2>]\"\n");
+    #####:   12:        return ERR_PARAMS;
+        -:   13:    }
+       27:   14:    int rc = ERR_OK;
+      27*:   15:    if (strcmp(argv[1], "c") == 0 && argc == 4)
+    #####:   16:    {
+    #####:   17:        FILE *f_bin = fopen(argv[3], "wb");
+        -:   18:        int number;
+    #####:   19:        number = atoi(argv[2]);
+    #####:   20:        if (f_bin == NULL)
+    #####:   21:            rc = ERR_IO;
+        -:   22:
+    #####:   23:        if (number < 0)
+    #####:   24:            rc = ERR_PARAMS;
+        -:   25:
+    #####:   26:        if (rc == ERR_OK)
+    #####:   27:            rc = write_rand_number_in_file(f_bin, number);
+        -:   28:
+    #####:   29:        if (f_bin != NULL)
+    #####:   30:            fclose(f_bin);
+        -:   31:    } 
+       27:   32:    else if (strcmp(argv[1], "p") == 0 && argc == 3)
+        2:   33:    {
+        2:   34:        FILE *f_bin = fopen(argv[2], "rb");
+        2:   35:        rc = check_bin_file(f_bin);
+        -:   36:
+        2:   37:        if (f_bin == NULL)
+    #####:   38:            rc = ERR_IO;
+        -:   39:        
+        2:   40:        if (rc == ERR_OK)
+        2:   41:            rc = print_bin_file(f_bin);
+        -:   42:        
+        2:   43:        if (f_bin != NULL)
+        2:   44:            fclose(f_bin);
+        -:   45:    }
+       25:   46:    else if (strcmp(argv[1], "s") == 0 && argc == 3)
+        9:   47:    {
+        9:   48:        FILE *f_bin = fopen(argv[2], "r+b");
+        9:   49:        rc = check_bin_file(f_bin);
+        9:   50:        if (f_bin == NULL)
+    #####:   51:            rc = ERR_IO;
+        -:   52:        
+        9:   53:        if (rc == ERR_OK)
+        7:   54:            rc = sort_number_in_bin_file(f_bin);
+        -:   55:        
+        9:   56:        if (f_bin != NULL)
+        9:   57:            fclose(f_bin);
+        -:   58:    }
+       16:   59:    else if (strcmp(argv[1], "import") == 0 && argc == 4)
+        9:   60:    {
+        9:   61:        FILE *f_txt = fopen(argv[2], "r");
+        9:   62:        FILE *f_bin = fopen(argv[3], "wb");
+        9:   63:        rc = ERR_OK;
+        9:   64:        if (f_txt == NULL || f_bin == NULL)
+    #####:   65:            rc = ERR_IO;
+        -:   66:
+        9:   67:        if (rc == ERR_OK)
+        9:   68:            rc = text_to_bin(f_txt, f_bin);
+        -:   69:
+        9:   70:        if (f_txt != NULL)
+        9:   71:            fclose(f_txt);
+        9:   72:        if (f_bin != NULL)
+        9:   73:            fclose(f_bin);
+        -:   74:    }
+        7:   75:    else if (strcmp(argv[1], "export") == 0 && argc == 4)
+        7:   76:    {
+        7:   77:        FILE *f_bin = fopen(argv[2], "rb");
+        7:   78:        FILE *f_txt = fopen(argv[3], "w");
+        -:   79:        
+        7:   80:        rc = check_bin_file(f_bin);
+        7:   81:        if (f_txt == NULL || f_bin == NULL)
+    #####:   82:            rc = ERR_IO;
+        -:   83:
+        7:   84:        if (rc == ERR_OK)
+        7:   85:            rc = bin_to_text(f_bin, f_txt);
+        -:   86:
+        7:   87:        if (f_txt != NULL)
+        7:   88:            fclose(f_txt);
+        7:   89:        if (f_bin != NULL)
+        7:   90:            fclose(f_bin);
+        -:   91:    }
+        -:   92:    else
+        -:   93:    {
+    #####:   94:        printf("Start command: \"./app.exe <key> <file_name> [<file_name_2>]\"\n");
+    #####:   95:        rc = ERR_PARAMS;
+        -:   96:    }
+       27:   97:    return rc;
+        -:   98:}
